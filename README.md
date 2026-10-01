@@ -1,14 +1,22 @@
-# Marça — Digital Boutique
+# Marça
 
-Elegant static storefront for **Marça** (`marça.online`). Multi-product boutique; Snapchat Plus is one product with nested plans.
+Static storefront for **Marça** (`marça.online`).
 
 Payment: **Bankily only** via WhatsApp — no card processing on-site.
 
+## Structure
+```
+index.html
+assets/logo-m-3d.png          # 3D M mark (favicon/header)
+assets/products/snapchat.png  # Snapchat ghost product image
+css/base.css + products.css + checkout.css
+css/styles.css                # combined (Pages/Hostinger)
+js/config.js
+js/app.js
+```
+
 ## Flow (Snapchat Plus)
-Home product grid → Snapchat Plus → plans (3m 170 / 6m 330 / 1y 630 MRU) → Snap username → follow Snap → Bankily agree → WhatsApp `wa.me/22248650585`.
+Home → Snapchat Plus (brand logo) → plans (3m 170 / 6m 330 / 1y 630 MRU) → يوزر سنابشات → follow Snap → Bankily agree → WhatsApp `wa.me/22248650585`.
 
 ## Config
-Edit `js/config.js`: `WHATSAPP_E164`, `SNAP_FOLLOW_URL`, `STORE_NAME`, `DOMAIN`, `PRODUCTS[]` with nested `plans`.
-
-## Security
-CSP strict self, no CDNs, `textContent` only, `encodeURIComponent` for WhatsApp.
+Edit `js/config.js`: WhatsApp, Snap follow URL, `PRODUCTS[]` (use each brand's official logo as `image`).
