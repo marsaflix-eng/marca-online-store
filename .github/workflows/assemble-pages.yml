@@ -1,0 +1,92 @@
+name: Assemble and enable Pages
+on:
+  push:
+    paths:
+      - '_upload/site.tgz.b64.**'
+      - '.github/workflows/assemble-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble tarball, extract, commit site, enable Pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 << 'PY'
+          from pathlib import Path
+          import base64, tarfile, io, os, subprocess, json, urllib.request
+          parts = sorted(Path('_upload').glob('site.tgz.b64.*'))
+          assert parts, 'missing chunks'
+          b64 = ''.join(p.read_text().strip() for p in parts)
+          raw = base64.b64decode(b64)
+          Path('/tmp/site.tgz').write_bytes(raw)
+          with tarfile.open('/tmp/site.tgz', 'r:gz') as tar:
+              tar.extractall('.')
+          # remove upload staging
+          import shutil
+          shutil.rmtree('_upload', ignore_errors=True)
+          # remove workflow after success? keep for re-runs
+          print('extracted', list(Path('.').rglob('*'))[:30])
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git status
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Assemble Marça storefront from upload chunks"
+            git push
+          fi
+          # Enable classic Pages from main /
+          python3 << 'PY'
+          import json, os, urllib.request
+          token = os.environ['GH_TOKEN']
+          repo = os.environ['GITHUB_REPOSITORY']
+          url = f'https://api.github.com/repos/{repo}/pages'
+          body = json.dumps({"build_type":"legacy","source":{"branch":"main","path":"/"}}).encode()
+          req = urllib.request.Request(url, data=body, method='POST', headers={
+            'Authorization': f'Bearer {token}',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json',
+          })
+          try:
+            with urllib.request.urlopen(req) as resp:
+              print('pages create', resp.status, resp.read()[:500])
+          except urllib.error.HTTPError as e:
+            print('pages create', e.code, e.read()[:500])
+            # try PUT update
+            req2 = urllib.request.Request(url, data=body, method='PUT', headers={
+              'Authorization': f'Bearer {token}',
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'Content-Type': 'application/json',
+            })
+            try:
+              with urllib.request.urlopen(req2) as resp:
+                print('pages update', resp.status, resp.read()[:500])
+            except Exception as e2:
+              print('pages update failed', e2)
+          # set custom domain
+          cname = Path('CNAME').read_text().strip() if Path('CNAME').exists() else 'xn--mara-2oa.online'
+          body2 = json.dumps({"cname": cname, "https_enforced": True}).encode()
+          req3 = urllib.request.Request(url, data=body2, method='PUT', headers={
+            'Authorization': f'Bearer {token}',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28',
+            'Content-Type': 'application/json',
+          })
+          try:
+            with urllib.request.urlopen(req3) as resp:
+              print('cname', resp.status, resp.read()[:500])
+          except Exception as e:
+            print('cname set', e)
+          PY
