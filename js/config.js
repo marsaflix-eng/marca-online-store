@@ -1,7 +1,7 @@
 /**
  * Marça Store Configuration
  * Edit these values without touching app logic.
- * PRODUCTS is category-ready: each product can nest plans / flow type.
+ * PRODUCTS: each product should use its original brand logo as image.
  */
 window.MARCA_CONFIG = Object.freeze({
   WHATSAPP_E164: "22248650585",
@@ -12,8 +12,6 @@ window.MARCA_CONFIG = Object.freeze({
   STORE_NAME_AR: "مرصة",
   CURRENCY: "أوقية",
   CURRENCY_CODE: "MRU",
-  TAGLINE_AR: "بوتيك رقمي أنيق — هدايا واشتراكات رقمية",
-  TAGLINE_EN: "Elegant digital boutique",
   PRODUCTS: Object.freeze([
     Object.freeze({
       id: "snapchat-plus",
@@ -21,11 +19,8 @@ window.MARCA_CONFIG = Object.freeze({
       categoryAr: "اشتراكات",
       nameAr: "سناب شات بلس",
       nameEn: "Snapchat Plus",
-      shortAr: "هدية اشتراك سناب شات بلس بأسعار واضحة",
-      shortEn: "Snapchat Plus gift subscriptions",
-      badge: "متوفر الآن",
+      image: "assets/products/snapchat.png",
       featured: true,
-      icon: "snap",
       flow: "snapchat-plus",
       plans: Object.freeze([
         Object.freeze({
