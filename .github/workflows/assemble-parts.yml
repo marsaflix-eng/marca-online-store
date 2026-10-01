@@ -1,9 +1,6 @@
 name: Assemble storefront parts
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '_parts/**'
 permissions:
   contents: write
   pages: write
@@ -19,28 +16,28 @@ jobs:
           set -euo pipefail
           python3 << 'PY'
           from pathlib import Path
-          import shutil
+          import shutil, re
+          def part_num(p):
+            m = re.search(r'part(\d+)', p.name)
+            return int(m.group(1)) if m else 0
           def parts_for(patterns):
             found = []
             for pat in patterns:
               found.extend(Path('_parts').rglob(pat))
-            # unique + sort by name
-            found = sorted(set(found), key=lambda p: p.name)
-            return found
+            return sorted(set(found), key=part_num)
           mapping = {
             'index.html': parts_for(['index.html.part*']),
             '404.html': parts_for(['404.html.part*']),
-            'css/styles.css': parts_for(['styles.css.part*', 'css/styles.css.part*']),
-            'js/app.js': parts_for(['app.js.part*', 'js/app.js.part*']),
+            'css/styles.css': parts_for(['styles.css.part*']),
+            'js/app.js': parts_for(['app.js.part*']),
           }
           for dest, parts in mapping.items():
-            assert parts, f'missing parts for {dest}'
+            assert parts, f'missing parts for {dest}: {[p.name for p in Path("_parts").rglob("*") if p.is_file()]}'
             text = ''.join(p.read_text(encoding='utf-8') for p in parts)
             Path(dest).parent.mkdir(parents=True, exist_ok=True)
             Path(dest).write_text(text, encoding='utf-8')
             print('wrote', dest, len(text), 'from', [p.name for p in parts])
           shutil.rmtree('_parts', ignore_errors=True)
-          # remove obsolete assemble-pages.yml leftover upload dirs if any
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -63,15 +60,15 @@ jobs:
             req = urllib.request.Request(url, data=body, method=method, headers=headers)
             try:
               with urllib.request.urlopen(req) as resp:
-                print('pages', method, resp.status, resp.read()[:200]); break
+                print('pages', method, resp.status, resp.read()[:300]); break
             except urllib.error.HTTPError as e:
-              print('pages', method, e.code, e.read()[:200])
+              print('pages', method, e.code, e.read()[:300])
           cname = Path('CNAME').read_text().strip() if Path('CNAME').exists() else 'xn--mara-2oa.online'
           body2 = json.dumps({"cname": cname, "https_enforced": True}).encode()
           req = urllib.request.Request(url, data=body2, method='PUT', headers=headers)
           try:
             with urllib.request.urlopen(req) as resp:
-              print('cname', resp.status, resp.read()[:200])
+              print('cname', resp.status, resp.read()[:300])
           except urllib.error.HTTPError as e:
-            print('cname', e.code, e.read()[:200])
+            print('cname', e.code, e.read()[:300])
           PY
