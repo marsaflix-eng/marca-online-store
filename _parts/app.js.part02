@@ -1,0 +1,100 @@
+      duration.className = "plan-duration";
+      setText(duration, product.nameAr);
+      btn.appendChild(duration);
+
+      var priceWrap = document.createElement("div");
+      priceWrap.className = "plan-price";
+      var priceVal = document.createElement("span");
+      priceVal.className = "plan-price-value";
+      setText(priceVal, String(product.price));
+      var priceCur = document.createElement("span");
+      priceCur.className = "plan-price-currency";
+      setText(priceCur, cfg.CURRENCY + " · " + cfg.CURRENCY_CODE);
+      priceWrap.appendChild(priceVal);
+      priceWrap.appendChild(priceCur);
+      btn.appendChild(priceWrap);
+
+      var cta = document.createElement("span");
+      cta.className = "plan-cta";
+      setText(cta, "اختر هذه الباقة");
+      btn.appendChild(cta);
+
+      btn.addEventListener("click", function () {
+        selectProduct(product.id);
+      });
+
+      grid.appendChild(btn);
+    });
+  }
+
+  function selectProduct(id) {
+    var found = null;
+    for (var i = 0; i < cfg.PRODUCTS.length; i++) {
+      if (cfg.PRODUCTS[i].id === id) {
+        found = cfg.PRODUCTS[i];
+        break;
+      }
+    }
+    if (!found) return;
+    state.product = found;
+    state.followed = false;
+    state.agreedPayment = false;
+    if (el.followCheck) el.followCheck.checked = false;
+    if (el.paymentCheck) el.paymentCheck.checked = false;
+    syncFollowNext();
+    syncWhatsAppBtn();
+    showPanel(1);
+    if (el.usernameInput) {
+      el.usernameInput.focus();
+    }
+  }
+
+  /* ---------- Username step ---------- */
+  function onUsernameInput() {
+    var raw = el.usernameInput.value;
+    var result = validateUsername(raw);
+    if (el.usernameInput.classList) {
+      if (raw && !result.ok) el.usernameInput.classList.add("invalid");
+      else el.usernameInput.classList.remove("invalid");
+    }
+    setText(el.usernameError, result.error || "");
+    el.btnUserNext.disabled = !result.ok;
+  }
+
+  function goUsernameNext() {
+    var result = validateUsername(el.usernameInput.value);
+    if (!result.ok) {
+      setText(el.usernameError, result.error);
+      el.usernameInput.classList.add("invalid");
+      el.usernameInput.focus();
+      return;
+    }
+    state.username = result.value;
+    /* Normalize input display without @ */
+    el.usernameInput.value = result.value;
+    el.usernameInput.classList.remove("invalid");
+    setText(el.usernameError, "");
+    showPanel(2);
+  }
+
+  /* ---------- Follow step ---------- */
+  function syncFollowNext() {
+    state.followed = !!(el.followCheck && el.followCheck.checked);
+    if (el.btnFollowNext) el.btnFollowNext.disabled = !state.followed;
+  }
+
+  function goFollowNext() {
+    if (!el.followCheck || !el.followCheck.checked) {
+      syncFollowNext();
+      return;
+    }
+    state.followed = true;
+    showPanel(3);
+  }
+
+  /* ---------- Payment / WhatsApp ---------- */
+  function setWhatsAppEnabled(on) {
+    if (!el.btnWhatsApp) return;
+    if (on) {
+      el.btnWhatsApp.classList.remove("is-disabled");
+      el.btnWhatsApp.setAttribute("aria-disabled", "false");
