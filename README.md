@@ -1,24 +1,14 @@
-# Marça (مرصة) — Snapchat+ store
+# Marça — Digital Boutique
 
-**Source of truth** for the static storefront (also synced to the user Pages site).
+Elegant static storefront for **Marça** (`marça.online`). Multi-product boutique; Snapchat Plus is one product with nested plans.
 
-## Live URLs
+Payment: **Bankily only** via WhatsApp — no card processing on-site.
 
-| URL | Notes |
-|-----|--------|
-| https://marsaflix-eng.github.io/ | User Pages (redirects to custom domain once DNS is set) |
-| https://marça.online / https://xn--mara-2oa.online | Apex custom domain (set DNS at Hostinger) |
-| This repo | https://github.com/marsaflix-eng/marca-online-store — full site on `main`; project Pages API enable is blocked for Actions tokens — use user site above |
+## Flow (Snapchat Plus)
+Home product grid → Snapchat Plus → plans (3m 170 / 6m 330 / 1y 630 MRU) → Snap username → follow Snap → Bankily agree → WhatsApp `wa.me/22248650585`.
 
-WhatsApp orders: **+222 48 65 05 85** (`22248650585`).
+## Config
+Edit `js/config.js`: `WHATSAPP_E164`, `SNAP_FOLLOW_URL`, `STORE_NAME`, `DOMAIN`, `PRODUCTS[]` with nested `plans`.
 
-## Pages / security
-
-- Serves from GitHub Pages (user site `marsaflix-eng.github.io`).
-- `CNAME` = `xn--mara-2oa.online` (punycode for marça.online).
-- CSP via `<meta http-equiv="Content-Security-Policy">` in `index.html` (includes `form-action` for `wa.me` / `api.whatsapp.com`). No `.htaccess`.
-- `.nojekyll`, `404.html`, `robots.txt` included.
-
-## Sync to user Pages
-
-After editing this repo, run workflow **Sync storefront** on https://github.com/marsaflix-eng/marsaflix-eng.github.io/actions (or push triggers if configured).
+## Security
+CSP strict self, no CDNs, `textContent` only, `encodeURIComponent` for WhatsApp.
