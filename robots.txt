@@ -1,2 +1,5 @@
 User-agent: *
 Allow: /
+
+# Sitemap can be added after domain is set:
+# Sitemap: https://YOUR-DOMAIN/sitemap.xml
