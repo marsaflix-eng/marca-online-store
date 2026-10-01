@@ -7,7 +7,6 @@
   "STORE_NAME_AR": "مرصة",
   "CURRENCY": "أوقية",
   "CURRENCY_CODE": "MRU",
-  "TAGLINE_AR": "بوتيك رقمي أنيق — هدايا واشتراكات رقمية",
   "PRODUCTS": [
     {
       "id": "snapchat-plus",
@@ -15,15 +14,37 @@
       "categoryAr": "اشتراكات",
       "nameAr": "سناب شات بلس",
       "nameEn": "Snapchat Plus",
-      "shortAr": "هدية اشتراك سناب شات بلس بأسعار واضحة",
-      "shortEn": "Snapchat Plus gift subscriptions",
-      "badge": "متوفر الآن",
+      "image": "assets/products/snapchat.png",
       "featured": true,
       "flow": "snapchat-plus",
       "plans": [
-        {"id": "3m", "nameAr": "3 أشهر", "nameEn": "3 months", "durationMonths": 3, "price": 170, "badge": "الأكثر طلبًا", "highlight": false},
-        {"id": "6m", "nameAr": "6 أشهر", "nameEn": "6 months", "durationMonths": 6, "price": 330, "badge": "قيمة ممتازة", "highlight": true},
-        {"id": "1y", "nameAr": "سنة كاملة", "nameEn": "1 year", "durationMonths": 12, "price": 630, "badge": "أفضل عرض", "highlight": false}
+        {
+          "id": "3m",
+          "nameAr": "3 أشهر",
+          "nameEn": "3 months",
+          "durationMonths": 3,
+          "price": 170,
+          "badge": "الأكثر طلبًا",
+          "highlight": false
+        },
+        {
+          "id": "6m",
+          "nameAr": "6 أشهر",
+          "nameEn": "6 months",
+          "durationMonths": 6,
+          "price": 330,
+          "badge": "قيمة ممتازة",
+          "highlight": true
+        },
+        {
+          "id": "1y",
+          "nameAr": "سنة كاملة",
+          "nameEn": "1 year",
+          "durationMonths": 12,
+          "price": 630,
+          "badge": "أفضل عرض",
+          "highlight": false
+        }
       ]
     }
   ],
