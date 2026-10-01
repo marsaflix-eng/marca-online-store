@@ -1,0 +1,45 @@
+ck", goUsernameNext);
+      el.btnUserNext.disabled = true;
+    }
+
+    if (el.followCheck) {
+      el.followCheck.addEventListener("change", syncFollowNext);
+    }
+    if (el.btnFollowNext) {
+      el.btnFollowNext.addEventListener("click", goFollowNext);
+      el.btnFollowNext.disabled = true;
+    }
+
+    if (el.paymentCheck) {
+      el.paymentCheck.addEventListener("change", syncWhatsAppBtn);
+    }
+    if (el.btnWhatsApp) {
+      el.btnWhatsApp.addEventListener("click", onWhatsAppClick);
+      el.btnWhatsApp.setAttribute("target", "_blank");
+      el.btnWhatsApp.setAttribute("rel", "noopener noreferrer");
+      setWhatsAppEnabled(false);
+    }
+
+    el.backButtons.forEach(function (b) {
+      b.addEventListener("click", function (e) {
+        e.preventDefault();
+        goBack();
+      });
+    });
+
+    /* Logo click resets to plans */
+    var logo = document.getElementById("logo-home");
+    if (logo) {
+      logo.addEventListener("click", function (e) {
+        e.preventDefault();
+        showPanel(0);
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
