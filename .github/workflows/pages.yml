@@ -22,7 +22,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site
-          cp index.html 404.html robots.txt CNAME .nojekyll _site/
+          # Do not include CNAME; custom domain lives on marsaflix-eng.github.io
+          cp index.html 404.html robots.txt .nojekyll _site/
           cp -a css js _site/
       - name: Setup Pages
         uses: actions/configure-pages@v5
