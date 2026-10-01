@@ -9,14 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create or update Pages site
+      - name: Create or update Pages site (no custom domain)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           python3 << 'PY'
           import json, os, urllib.request, urllib.error
-          from pathlib import Path
           token = os.environ['GH_TOKEN']
           repo = os.environ['GITHUB_REPOSITORY']
           url = f'https://api.github.com/repos/{repo}/pages'
@@ -42,14 +41,13 @@ jobs:
                 break
             except urllib.error.HTTPError as e:
               print(method, e.code, e.read().decode()[:800])
-          cname = Path('CNAME').read_text().strip() if Path('CNAME').exists() else 'xn--mara-2oa.online'
-          body2 = json.dumps({"cname": cname, "https_enforced": True}).encode()
-          req = urllib.request.Request(url, data=body2, method='PUT', headers=headers)
+          # Never claim xn--mara-2oa.online here; that domain belongs to marsaflix-eng.github.io
+          req = urllib.request.Request(url, data=json.dumps({"cname": None}).encode(), method='PUT', headers=headers)
           try:
             with urllib.request.urlopen(req) as resp:
-              print('cname PUT', resp.status, resp.read().decode()[:800])
+              print('cname clear', resp.status, resp.read().decode()[:800])
           except urllib.error.HTTPError as e:
-            print('cname PUT', e.code, e.read().decode()[:800])
+            print('cname clear', e.code, e.read().decode()[:800])
           req = urllib.request.Request(url, method='GET', headers={k:v for k,v in headers.items() if k!='Content-Type'})
           try:
             with urllib.request.urlopen(req) as resp:
