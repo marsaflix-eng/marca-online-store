@@ -1,0 +1,93 @@
+    var p = state.product;
+    var lines = [
+      "السلام عليكم،",
+      "أريد طلب اشتراك سناب شات بلس من متجر " + cfg.STORE_NAME + ":",
+      "",
+      "• الباقة: " + p.nameAr + " (" + p.nameEn + ")",
+      "• السعر: " + formatPrice(p.price),
+      "• اسم المستخدم على سناب: @" + state.username,
+      "• تأكيد المتابعة: تابعت حسابكم ✓",
+      "• تأكيد الدفع: أوافق على الدفع فقط عبر بنكيلي (Bankily) — لا Gimtel ولا طرف ثالث ✓",
+      "",
+      "شكرًا لكم."
+    ];
+    return lines.join("\n");
+  }
+
+  function buildWhatsAppUrl() {
+    var phone = String(cfg.WHATSAPP_E164).replace(/\D/g, "");
+    var text = buildWhatsAppMessage();
+    return "https://wa.me/" + phone + "?text=" + encodeURIComponent(text);
+  }
+
+  /* ---------- Progress UI ---------- */
+  function updateProgress() {
+    var step = state.step;
+    if (step === 0) {
+      el.progressWrap.classList.remove("visible");
+      return;
+    }
+    el.progressWrap.classList.add("visible");
+    /* steps 1–3 map to progress indices 0–2 (username, follow, payment) */
+    var idx = step - 1;
+    var pct = ((idx + 1) / 3) * 100;
+    el.progressFill.style.width = pct + "%";
+
+    el.progressSteps.forEach(function (node) {
+      var i = parseInt(node.getAttribute("data-progress-step"), 10);
+      node.classList.remove("active", "done");
+      if (i < idx) node.classList.add("done");
+      else if (i === idx) node.classList.add("active");
+    });
+  }
+
+  function showPanel(step) {
+    state.step = step;
+    Object.keys(el.panels).forEach(function (k) {
+      var panel = el.panels[k];
+      if (!panel) return;
+      if (parseInt(k, 10) === step) {
+        panel.classList.add("active");
+        panel.setAttribute("aria-hidden", "false");
+      } else {
+        panel.classList.remove("active");
+        panel.setAttribute("aria-hidden", "true");
+      }
+    });
+    updateProgress();
+    updateSummaries();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function updateSummaries() {
+    if (!state.product) return;
+    var label = state.product.nameAr + " — " + formatPrice(state.product.price);
+    el.summaries.forEach(function (node) {
+      var strong = node.querySelector("strong");
+      if (strong) setText(strong, label);
+      else setText(node, label);
+    });
+  }
+
+  /* ---------- Render plans ---------- */
+  function renderPlans() {
+    var grid = el.plansGrid;
+    if (!grid) return;
+    /* Clear safely */
+    while (grid.firstChild) grid.removeChild(grid.firstChild);
+
+    cfg.PRODUCTS.forEach(function (product) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "plan-card" + (product.highlight ? " featured" : "");
+      btn.setAttribute("data-product-id", product.id);
+      btn.setAttribute("aria-label", "اختر باقة " + product.nameAr + " بسعر " + formatPrice(product.price));
+
+      if (product.badge) {
+        var badge = document.createElement("span");
+        badge.className = "plan-badge";
+        setText(badge, product.badge);
+        btn.appendChild(badge);
+      }
+
+      var duration = document.createElement("div");
