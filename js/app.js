@@ -25,6 +25,8 @@
 
   var USERNAME_RE = /^[A-Za-z0-9._-]{3,15}$/;
 
+  var VIEW_ORDER = ["home", "plans", "username", "follow", "payment"];
+
   /* ---------- DOM ---------- */
   var el = {
     progressWrap: document.getElementById("progress-wrap"),
@@ -52,6 +54,7 @@
     homeButtons: document.querySelectorAll("[data-home]")
   };
 
+  /* ---------- Helpers (security) ---------- */
   function setText(node, text) {
     if (node) node.textContent = text == null ? "" : String(text);
   }
@@ -81,6 +84,7 @@
   }
 
   function formatPrice(n) {
+    /* Latin digits only in UI */
     return String(n) + " " + cfg.CURRENCY + " (" + cfg.CURRENCY_CODE + ")";
   }
 
@@ -124,6 +128,7 @@
     return null;
   }
 
+  /* ---------- Navigation ---------- */
   function updateProgress() {
     var checkoutViews = { username: 0, follow: 1, payment: 2 };
     if (!(state.view in checkoutViews)) {
@@ -198,6 +203,7 @@
     showView("home");
   }
 
+  /* ---------- Product grid (home) ---------- */
   function productIconSvg(kind) {
     var wrap = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     wrap.setAttribute("viewBox", "0 0 48 48");
@@ -205,9 +211,16 @@
     wrap.setAttribute("aria-hidden", "true");
     var path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     if (kind === "snap") {
-      path.setAttribute("d", "M24 6l2.4 7.2H34l-6 4.4 2.3 7.2L24 20.4l-6.3 4.4 2.3-7.2-6-4.4h7.6L24 6zm0 20c6.6 0 12 3.6 12 8v4H12v-4c0-4.4 5.4-8 12-8z");
+      /* Abstract gift / spark — not Snapchat logo */
+      path.setAttribute(
+        "d",
+        "M24 6l2.4 7.2H34l-6 4.4 2.3 7.2L24 20.4l-6.3 4.4 2.3-7.2-6-4.4h7.6L24 6zm0 20c6.6 0 12 3.6 12 8v4H12v-4c0-4.4 5.4-8 12-8z"
+      );
     } else {
-      path.setAttribute("d", "M12 14h24v4H12v-4zm0 8h24v16H12V22zm4 4v8h4v-8h-4zm8 0v8h4v-8h-4z");
+      path.setAttribute(
+        "d",
+        "M12 14h24v4H12v-4zm0 8h24v16H12V22zm4 4v8h4v-8h-4zm8 0v8h4v-8h-4z"
+      );
     }
     path.setAttribute("fill", "currentColor");
     wrap.appendChild(path);
@@ -218,19 +231,25 @@
     var grid = el.productGrid;
     if (!grid) return;
     while (grid.firstChild) grid.removeChild(grid.firstChild);
+
     (cfg.PRODUCTS || []).forEach(function (product) {
       var card = document.createElement("button");
       card.type = "button";
       card.className = "product-card" + (product.featured ? " featured" : "");
       card.setAttribute("data-product-id", product.id);
       card.setAttribute("role", "listitem");
-      card.setAttribute("aria-label", "اختر " + product.nameAr + (product.nameEn ? " — " + product.nameEn : ""));
+      card.setAttribute(
+        "aria-label",
+        "اختر " + product.nameAr + (product.nameEn ? " — " + product.nameEn : "")
+      );
+
       if (product.badge) {
         var badge = document.createElement("span");
         badge.className = "product-badge";
         setText(badge, product.badge);
         card.appendChild(badge);
       }
+
       var iconWrap = document.createElement("div");
       iconWrap.className = "product-icon" + (product.image ? " product-icon-img" : "");
       if (product.image) {
@@ -246,14 +265,17 @@
         iconWrap.appendChild(productIconSvg(product.icon || "default"));
       }
       card.appendChild(iconWrap);
+
       var title = document.createElement("h3");
       title.className = "product-title";
       setText(title, product.nameAr);
       card.appendChild(title);
+
       var en = document.createElement("p");
       en.className = "product-name-en";
       setText(en, product.nameEn);
       card.appendChild(en);
+
       if (product.plans && product.plans.length) {
         var from = product.plans[0].price;
         for (var i = 1; i < product.plans.length; i++) {
@@ -264,11 +286,16 @@
         setText(priceHint, "من " + String(from) + " " + cfg.CURRENCY_CODE);
         card.appendChild(priceHint);
       }
+
       var cta = document.createElement("span");
       cta.className = "product-cta";
       setText(cta, "عرض الباقات");
       card.appendChild(cta);
-      card.addEventListener("click", function () { openProduct(product.id); });
+
+      card.addEventListener("click", function () {
+        openProduct(product.id);
+      });
+
       grid.appendChild(card);
     });
   }
@@ -284,31 +311,46 @@
     if (el.paymentCheck) el.paymentCheck.checked = false;
     syncFollowNext();
     syncWhatsAppBtn();
-    renderPlans(product);
-    showView("plans");
+
+    if (product.flow === "snapchat-plus") {
+      renderPlans(product);
+      showView("plans");
+    } else {
+      /* Future flows: could open WhatsApp-simple etc. */
+      renderPlans(product);
+      showView("plans");
+    }
   }
 
+  /* ---------- Plans (Snapchat Plus) ---------- */
   function renderPlans(product) {
     var grid = el.plansGrid;
     if (!grid) return;
     while (grid.firstChild) grid.removeChild(grid.firstChild);
+
     var plans = (product && product.plans) || [];
     plans.forEach(function (plan) {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "plan-card" + (plan.highlight ? " featured" : "");
       btn.setAttribute("data-plan-id", plan.id);
-      btn.setAttribute("aria-label", "اختر باقة " + plan.nameAr + " بسعر " + formatPrice(plan.price));
+      btn.setAttribute(
+        "aria-label",
+        "اختر باقة " + plan.nameAr + " بسعر " + formatPrice(plan.price)
+      );
+
       if (plan.badge) {
         var badge = document.createElement("span");
         badge.className = "plan-badge";
         setText(badge, plan.badge);
         btn.appendChild(badge);
       }
+
       var duration = document.createElement("div");
       duration.className = "plan-duration";
       setText(duration, plan.nameAr);
       btn.appendChild(duration);
+
       var priceWrap = document.createElement("div");
       priceWrap.className = "plan-price";
       var priceVal = document.createElement("span");
@@ -320,11 +362,16 @@
       priceWrap.appendChild(priceVal);
       priceWrap.appendChild(priceCur);
       btn.appendChild(priceWrap);
+
       var cta = document.createElement("span");
       cta.className = "plan-cta";
       setText(cta, "اختر هذه الباقة");
       btn.appendChild(cta);
-      btn.addEventListener("click", function () { selectPlan(plan.id); });
+
+      btn.addEventListener("click", function () {
+        selectPlan(plan.id);
+      });
+
       grid.appendChild(btn);
     });
   }
@@ -344,6 +391,7 @@
     if (el.usernameInput) el.usernameInput.focus();
   }
 
+  /* ---------- Username ---------- */
   function onUsernameInput() {
     var raw = el.usernameInput.value;
     var result = validateUsername(raw);
@@ -370,6 +418,7 @@
     showView("follow");
   }
 
+  /* ---------- Follow ---------- */
   function syncFollowNext() {
     state.followed = !!(el.followCheck && el.followCheck.checked);
     if (el.btnFollowNext) el.btnFollowNext.disabled = !state.followed;
@@ -384,6 +433,7 @@
     showView("payment");
   }
 
+  /* ---------- Payment / WhatsApp ---------- */
   function setWhatsAppEnabled(on) {
     if (!el.btnWhatsApp) return;
     if (on) {
@@ -410,25 +460,35 @@
       e.preventDefault();
       return;
     }
-    el.btnWhatsApp.setAttribute("href", buildWhatsAppUrl());
+    var url = buildWhatsAppUrl();
+    el.btnWhatsApp.setAttribute("href", url);
   }
 
+  /* ---------- Back ---------- */
   function goBack() {
-    var map = { plans: "home", username: "plans", follow: "username", payment: "follow" };
+    var map = {
+      plans: "home",
+      username: "plans",
+      follow: "username",
+      payment: "follow"
+    };
     var prev = map[state.view];
     if (!prev) return;
     if (prev === "home") goHome();
     else showView(prev);
   }
 
+  /* ---------- Init ---------- */
   function init() {
     if (el.snapFollowLink) {
       el.snapFollowLink.setAttribute("href", cfg.SNAP_FOLLOW_URL);
       el.snapFollowLink.setAttribute("target", "_blank");
       el.snapFollowLink.setAttribute("rel", "noopener noreferrer");
     }
+
     renderProducts();
     showView("home");
+
     if (el.usernameInput) {
       el.usernameInput.addEventListener("input", onUsernameInput);
       el.usernameInput.addEventListener("keydown", function (e) {
@@ -438,32 +498,56 @@
         }
       });
     }
+
     if (el.btnUserNext) {
       el.btnUserNext.addEventListener("click", goUsernameNext);
       el.btnUserNext.disabled = true;
     }
-    if (el.followCheck) el.followCheck.addEventListener("change", syncFollowNext);
+
+    if (el.followCheck) {
+      el.followCheck.addEventListener("change", syncFollowNext);
+    }
     if (el.btnFollowNext) {
       el.btnFollowNext.addEventListener("click", goFollowNext);
       el.btnFollowNext.disabled = true;
     }
-    if (el.paymentCheck) el.paymentCheck.addEventListener("change", syncWhatsAppBtn);
+
+    if (el.paymentCheck) {
+      el.paymentCheck.addEventListener("change", syncWhatsAppBtn);
+    }
     if (el.btnWhatsApp) {
       el.btnWhatsApp.addEventListener("click", onWhatsAppClick);
       el.btnWhatsApp.setAttribute("target", "_blank");
       el.btnWhatsApp.setAttribute("rel", "noopener noreferrer");
       setWhatsAppEnabled(false);
     }
+
     el.backButtons.forEach(function (b) {
-      b.addEventListener("click", function (e) { e.preventDefault(); goBack(); });
+      b.addEventListener("click", function (e) {
+        e.preventDefault();
+        goBack();
+      });
     });
+
     el.homeButtons.forEach(function (b) {
-      b.addEventListener("click", function (e) { e.preventDefault(); goHome(); });
+      b.addEventListener("click", function (e) {
+        e.preventDefault();
+        goHome();
+      });
     });
+
     var logo = document.getElementById("logo-home");
-    if (logo) logo.addEventListener("click", function (e) { e.preventDefault(); goHome(); });
+    if (logo) {
+      logo.addEventListener("click", function (e) {
+        e.preventDefault();
+        goHome();
+      });
+    }
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
