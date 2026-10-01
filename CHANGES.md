@@ -9,9 +9,9 @@
 - Pattern: product `image` = original brand logo.
 
 ## Copy
-- Removed empty taglines (boutique fluff).
+- Removed empty taglines («بوتيك رقمي أنيق» / elegant boutique fluff).
 - Minimal hero; store name Marça only.
-- Username step: يوزر سنابشات / Snapchat username (label, placeholder, hint, progress).
+- Username step: **يوزر سنابشات** / Snapchat username (label, placeholder, hint, progress).
 
 ## Unchanged
 - Plans 170 / 330 / 630 MRU, WhatsApp 22248650585, follow URL, Bankily-only.

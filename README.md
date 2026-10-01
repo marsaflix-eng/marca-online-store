@@ -19,4 +19,4 @@ js/app.js
 Home → Snapchat Plus (brand logo) → plans (3m 170 / 6m 330 / 1y 630 MRU) → يوزر سنابشات → follow Snap → Bankily agree → WhatsApp `wa.me/22248650585`.
 
 ## Config
-Edit `js/config.js`: WhatsApp, Snap follow URL, `PRODUCTS[]` (use each brand's official logo as `image`).
+Edit `js/config.js`: WhatsApp, Snap follow URL, `PRODUCTS[]` (use each brand’s official logo as `image`).

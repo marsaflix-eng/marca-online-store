@@ -1,0 +1,73 @@
+# Marça store — Hostinger / Apache shared hosting
+# Force HTTPS, harden headers, block sensitive paths
+
+# Disable directory listing
+Options -Indexes
+
+# Follow symlinks only if needed by host; keep off by default for safety
+# Options -FollowSymLinks
+
+# ---- Force HTTPS ----
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# ---- Deny hidden / sensitive files ----
+<IfModule mod_authz_core.c>
+  # Dotfiles (.ht*, .env, .git, etc.)
+  <FilesMatch "^\.">
+    Require all denied
+  </FilesMatch>
+  # Common secret / backup patterns
+  <FilesMatch "(?i)\.(env|ini|log|sql|bak|old|swp| Dist)$">
+    Require all denied
+  </FilesMatch>
+  <FilesMatch "(?i)^(composer\.(json|lock)|package(-lock)?\.json|\.gitignore|README\.md|REPORT\.md)$">
+    Require all denied
+  </FilesMatch>
+</IfModule>
+
+# Apache 2.2 fallback
+<IfModule !mod_authz_core.c>
+  <FilesMatch "^\.>">
+    Order allow,deny
+    Deny from all
+  </FilesMatch>
+</IfModule>
+
+# ---- Security headers ----
+<IfModule mod_headers.c>
+  # Remove fingerprinting
+  Header unset X-Powered-By
+  Header always unset X-Powered-By
+
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'self' https://wa.me https://api.whatsapp.com; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "no-referrer"
+  Header always set Permissions-Policy "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Cross-Origin-Resource-Policy "same-origin"
+</IfModule>
+
+# ---- MIME / charset ----
+<IfModule mod_mime.c>
+  AddDefaultCharset UTF-8
+  AddType text/javascript .js
+  AddType text/css .css
+</IfModule>
+
+# ---- Cache static assets (short; safe for small store) ----
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 7 days"
+  ExpiresByType text/javascript "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType image/svg+xml "access plus 30 days"
+  ExpiresByType image/png "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 30 days"
+  ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
