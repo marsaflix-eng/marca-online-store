@@ -20,19 +20,27 @@ jobs:
           python3 << 'PY'
           from pathlib import Path
           import shutil
+          def parts_for(patterns):
+            found = []
+            for pat in patterns:
+              found.extend(Path('_parts').rglob(pat))
+            # unique + sort by name
+            found = sorted(set(found), key=lambda p: p.name)
+            return found
           mapping = {
-            'index.html': sorted(Path('_parts').glob('index.html.part*')),
-            '404.html': sorted(Path('_parts').glob('404.html.part*')),
-            'css/styles.css': sorted(Path('_parts').glob('css/styles.css.part*')),
-            'js/app.js': sorted(Path('_parts').glob('js/app.js.part*')),
+            'index.html': parts_for(['index.html.part*']),
+            '404.html': parts_for(['404.html.part*']),
+            'css/styles.css': parts_for(['styles.css.part*', 'css/styles.css.part*']),
+            'js/app.js': parts_for(['app.js.part*', 'js/app.js.part*']),
           }
           for dest, parts in mapping.items():
-            assert parts, dest
+            assert parts, f'missing parts for {dest}'
             text = ''.join(p.read_text(encoding='utf-8') for p in parts)
             Path(dest).parent.mkdir(parents=True, exist_ok=True)
             Path(dest).write_text(text, encoding='utf-8')
-            print('wrote', dest, len(text))
+            print('wrote', dest, len(text), 'from', [p.name for p in parts])
           shutil.rmtree('_parts', ignore_errors=True)
+          # remove obsolete assemble-pages.yml leftover upload dirs if any
           PY
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
